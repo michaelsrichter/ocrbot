@@ -1,0 +1,234 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workflows_avidxchangelogicapp_name": {
+            "defaultValue": "avidxchangelogicappnext",
+            "type": "string"
+        },
+        "workflows_avidxchangelogicapp_id": {
+            "defaultValue": "/subscriptions/b59a9b75-a297-41fc-8773-4f3713391c19/resourceGroups/AzureFunctions-EastUS2/providers/Microsoft.Web/sites/makeUserObject/functions/HttpTriggerJS1",
+            "type": "string"
+        },
+        "workflows_avidxchangelogicapp_connectionId": {
+            "defaultValue": "/subscriptions/b59a9b75-a297-41fc-8773-4f3713391c19/resourceGroups/avidxchange/providers/Microsoft.Web/connections/office365",
+            "type": "string"
+        },
+        "workflows_avidxchangelogicapp_connectionId_1": {
+            "defaultValue": "/subscriptions/b59a9b75-a297-41fc-8773-4f3713391c19/resourceGroups/avidxchange/providers/Microsoft.Web/connections/servicebus",
+            "type": "string"
+        },
+        "workflows_avidxchangelogicapp_connectionId_2": {
+            "defaultValue": "/subscriptions/b59a9b75-a297-41fc-8773-4f3713391c19/resourceGroups/avidxchange/providers/Microsoft.Web/connections/sql",
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "comments": "Generalized from resource: '/subscriptions/b59a9b75-a297-41fc-8773-4f3713391c19/resourceGroups/avidxchange/providers/Microsoft.Logic/workflows/avidxchangelogicapp'.",
+            "type": "Microsoft.Logic/workflows",
+            "name": "[parameters('workflows_avidxchangelogicapp_name')]",
+            "apiVersion": "2016-06-01",
+            "location": "eastus2",
+            "scale": null,
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_a_message_is_received_in_a_topic_subscription_(auto-complete)": {
+                            "recurrence": {
+                                "frequency": "Second",
+                                "interval": 1
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "api": {
+                                        "runtimeUrl": "https://logic-apis-eastus2.azure-apim.net/apim/servicebus"
+                                    },
+                                    "connection": {
+                                        "name": "@parameters('$connections')['servicebus']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/@{encodeURIComponent('usertopic')}/subscriptions/@{encodeURIComponent('all')}/messages/head",
+                                "queries": {
+                                    "subscriptionType": "Main"
+                                }
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Condition": {
+                            "actions": {
+                                "Insert_row_2": {
+                                    "runAfter": {},
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "body": {
+                                            "Email": "@{body('Parse_JSON_3')?['email']}",
+                                            "Name": "@{body('Parse_JSON_3')?['name']}",
+                                            "Password": "@{body('Parse_JSON_3')?['password']}"
+                                        },
+                                        "host": {
+                                            "api": {
+                                                "runtimeUrl": "https://logic-apis-eastus2.azure-apim.net/apim/sql"
+                                            },
+                                            "connection": {
+                                                "name": "@parameters('$connections')['sql']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "path": "/datasets/default/tables/@{encodeURIComponent(encodeURIComponent('[dbo].[Users]'))}/items"
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "HttpTriggerJS1": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "else": {
+                                "actions": {
+                                    "HTTP": {
+                                        "runAfter": {},
+                                        "type": "Http",
+                                        "inputs": {
+                                            "method": "GET",
+                                            "uri": "http://passwordbotapi.azurewebsites.net/api/v1"
+                                        }
+                                    },
+                                    "Insert_row": {
+                                        "runAfter": {
+                                            "HTTP": [
+                                                "Succeeded"
+                                            ]
+                                        },
+                                        "type": "ApiConnection",
+                                        "inputs": {
+                                            "body": {
+                                                "Email": "@{body('Parse_JSON_3')?['email']}",
+                                                "Name": "@{body('Parse_JSON_3')?['name']}",
+                                                "Password": "@{body('HTTP')}"
+                                            },
+                                            "host": {
+                                                "api": {
+                                                    "runtimeUrl": "https://logic-apis-eastus2.azure-apim.net/apim/sql"
+                                                },
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['sql']['connectionId']"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "path": "/datasets/default/tables/@{encodeURIComponent(encodeURIComponent('[dbo].[Users]'))}/items"
+                                        }
+                                    }
+                                }
+                            },
+                            "expression": "@equals(outputs('HttpTriggerJS1')['statusCode'], 200)",
+                            "type": "If"
+                        },
+                        "HttpTriggerJS1": {
+                            "runAfter": {
+                                "Parse_JSON_3": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Function",
+                            "inputs": {
+                                "body": "@body('Parse_JSON_3')",
+                                "function": {
+                                    "id": "[parameters('workflows_avidxchangelogicapp_id')]"
+                                }
+                            }
+                        },
+                        "Parse_JSON_3": {
+                            "runAfter": {},
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@base64ToString(triggerBody()?['ContentData'])",
+                                "schema": {
+                                    "$schema": "http://json-schema.org/draft-04/schema#",
+                                    "definitions": {},
+                                    "id": "http://example.com/example.json",
+                                    "properties": {
+                                        "email": {
+                                            "id": "/properties/email",
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "id": "/properties/name",
+                                            "type": "string"
+                                        },
+                                        "password": {
+                                            "id": "/properties/password",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "Send_an_email": {
+                            "runAfter": {
+                                "Condition": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": {
+                                    "Body": "Hi @{body('Parse_JSON_3')?['name']}, your AWESOME!!! password is @{body('Parse_JSON_3')?['password']}@{body('HTTP')}!",
+                                    "Subject": "Your password",
+                                    "To": "@{body('Parse_JSON_3')?['email']}"
+                                },
+                                "host": {
+                                    "api": {
+                                        "runtimeUrl": "https://logic-apis-eastus2.azure-apim.net/apim/office365"
+                                    },
+                                    "connection": {
+                                        "name": "@parameters('$connections')['office365']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "/Mail"
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "office365": {
+                                "connectionId": "[parameters('workflows_avidxchangelogicapp_connectionId')]",
+                                "connectionName": "office365",
+                                "id": "/subscriptions/b59a9b75-a297-41fc-8773-4f3713391c19/providers/Microsoft.Web/locations/eastus2/managedApis/office365"
+                            },
+                            "servicebus": {
+                                "connectionId": "[parameters('workflows_avidxchangelogicapp_connectionId_1')]",
+                                "connectionName": "servicebus",
+                                "id": "/subscriptions/b59a9b75-a297-41fc-8773-4f3713391c19/providers/Microsoft.Web/locations/eastus2/managedApis/servicebus"
+                            },
+                            "sql": {
+                                "connectionId": "[parameters('workflows_avidxchangelogicapp_connectionId_2')]",
+                                "connectionName": "sql",
+                                "id": "/subscriptions/b59a9b75-a297-41fc-8773-4f3713391c19/providers/Microsoft.Web/locations/eastus2/managedApis/sql"
+                            }
+                        }
+                    }
+                }
+            },
+            "dependsOn": []
+        }
+    ]
+}
