@@ -2,12 +2,10 @@ var dotenv = require('dotenv').config();
 var azure = require('azure');
 
 //var serviceBusService = azure.createServiceBusService();
-var serviceBusService = azure.createServiceBusService('Endpoint=sb://avidxchangeapp.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=oSW52P66KCRqElm28GAkSZdZQl/vqLq7ULWpwgPRFhs=');
+var serviceBusService = azure.createServiceBusService('Endpoint=sb://botbus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=u7ORBFDotue0j3xj7WZj5qJpQrhmXKa5XekWRO1M5mc=');
 
 var messageBody = {
-    email: process.argv[2],
-    name: process.argv[3],
-    password: process.argv[4]
+    imageUrl: process.argv[2]
 };
 
 serviceBusService.sendTopicMessage('usertopic', JSON.stringify(messageBody), function (error) {
