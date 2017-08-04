@@ -50,7 +50,7 @@ bot.dialog('emailDialog', [
 bot.dialog('noneDialog', [
     function (session) {
         if (session.userData.email) {
-            session.endDialog('Hey %s! You can change your email or send me a URL!', session.userData.email);
+            session.endDialog('Hey %s ! You can change your email or send me a URL!', session.userData.email);
         }
         else {
             session.send('Hey buddy! Welcome to the OCR bot. Send me a URL and I will email you the text.');
@@ -65,6 +65,6 @@ bot.dialog('urlDialog', function (session) {
 }).triggerAction({ matches: /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/ });
 
 
-bot.dialog('urlDialog', function (session) {
+bot.dialog('codeDialog', function (session) {
     session.endDialog("Find the code here: https://github.com/michaelsrichter/ocrbot");
 }).triggerAction({ matches: 'Code' });
