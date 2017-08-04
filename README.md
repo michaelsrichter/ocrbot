@@ -1,3 +1,9 @@
+## OCR Bot
+
+To try the bot in Skype: [https://join.skype.com/bot/4f518215-6abb-474a-a8bc-6e1e64694765](https://join.skype.com/bot/4f518215-6abb-474a-a8bc-6e1e64694765)
+
+This bot is running on Azure Web Apps in a Linux docker container.
+
 ### Chatbots & AI
  * Microsoft Bot Framework
     * Has three main components
